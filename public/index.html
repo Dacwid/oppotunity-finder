@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpportunityFinder — Build Your CV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-left" onclick="showPage('landing')">
+      <div class="logo-mark">◎</div>
+      <span class="logo-text">OpportunityFinder</span>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn" onclick="showPage('landing')">Search</button>
+      <button class="nav-btn" onclick="showPage('bookmarks')">Saved</button>
+      <button class="nav-btn" onclick="showPage('history')">History</button>
+    </nav>
+  </header>
+
+  <!-- PAGE: LANDING / INTAKE FORM -->
+  <main id="page-landing" class="page active">
+    <div class="landing-container">
+      <div class="landing-badge">For Undergraduate Students</div>
+      <h1 class="landing-title">
+        Discover opportunities to<br/><em>build your CV</em>
+      </h1>
+      <p class="landing-sub">
+        Tell us about yourself and what you're looking for.
+        Our AI will find workshops, certifications, competitions &amp; more — tailored to you.
+      </p>
+
+      <div class="intake-form">
+
+        <!-- Topic -->
+        <div class="form-group form-group-full">
+          <label for="input-topic">
+            <span class="label-icon">🎯</span>
+            What field or topic interests you?
+          </label>
+          <input type="text" id="input-topic"
+                 placeholder='e.g. "machine learning", "graphic design", "cybersecurity"' />
+        </div>
+
+        <!-- Description / free text -->
+        <div class="form-group form-group-full">
+          <label for="input-description">
+            <span class="label-icon">📝</span>
+            Describe what you're looking for
+          </label>
+          <textarea id="input-description" rows="3"
+                    placeholder="e.g. I'm a computer science student interested in NLP and want to find free certifications and hackathons to join before I graduate. I prefer online opportunities but I'm open to events in Southeast Asia. I want things that will make my CV stand out for software engineering roles."></textarea>
+        </div>
+
+        <!-- Level + Country -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-level">
+              <span class="label-icon">🎓</span>
+              Academic level
+            </label>
+            <select id="input-level">
+              <option value="freshman">Freshman / 1st Year</option>
+              <option value="sophomore">Sophomore / 2nd Year</option>
+              <option value="junior">Junior / 3rd Year</option>
+              <option value="senior" selected>Senior / Final Year</option>
+              <option value="recent_grad">Recent Graduate</option>
+              <option value="masters">Master's Student</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="input-country">
+              <span class="label-icon">🌍</span>
+              Country
+            </label>
+            <input type="text" id="input-country" placeholder="e.g. Malaysia, USA, India" />
+          </div>
+        </div>
+
+        <!-- Budget + Goal type -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="input-budget">
+              <span class="label-icon">💰</span>
+              Budget
+            </label>
+            <select id="input-budget">
+              <option value="Free only" selected>Free only</option>
+              <option value="Under $50">Under $50 / affordable</option>
+              <option value="Under $200">Under $200</option>
+              <option value="Any budget">Any budget</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="input-format">
+              <span class="label-icon">💻</span>
+              Format preference
+            </label>
+            <select id="input-format">
+              <option value="any" selected>Online or In-person</option>
+              <option value="online">Online only</option>
+              <option value="in-person">In-person only</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Opportunity types (checkboxes) -->
+        <div class="form-group form-group-full">
+          <label>
+            <span class="label-icon">✨</span>
+            What kind of opportunities?
+          </label>
+          <div class="checkbox-grid">
+            <label class="check-item"><input type="checkbox" value="certification" checked /><span>Certifications</span></label>
+            <label class="check-item"><input type="checkbox" value="competition" checked /><span>Competitions</span></label>
+            <label class="check-item"><input type="checkbox" value="hackathon" checked /><span>Hackathons</span></label>
+            <label class="check-item"><input type="checkbox" value="workshop" checked /><span>Workshops</span></label>
+            <label class="check-item"><input type="checkbox" value="scholarship" /><span>Scholarships</span></label>
+            <label class="check-item"><input type="checkbox" value="fellowship" /><span>Fellowships</span></label>
+            <label class="check-item"><input type="checkbox" value="internship" /><span>Internships</span></label>
+            <label class="check-item"><input type="checkbox" value="conference" /><span>Conferences</span></label>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-search" onclick="handleSearch()">
+          <span class="btn-icon">⟐</span>
+          Find Opportunities
+        </button>
+      </div>
+
+      <!-- Quick picks -->
+      <div class="quick-picks">
+        <span class="quick-label">Popular:</span>
+        <button class="chip" onclick="quickPick('Web Development')">Web Development</button>
+        <button class="chip" onclick="quickPick('Data Science')">Data Science</button>
+        <button class="chip" onclick="quickPick('UI/UX Design')">UI/UX Design</button>
+        <button class="chip" onclick="quickPick('Cybersecurity')">Cybersecurity</button>
+        <button class="chip" onclick="quickPick('Cloud Computing')">Cloud Computing</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- PAGE: LOADING -->
+  <main id="page-loading" class="page">
+    <div class="loading-container">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <p class="loading-text" id="loading-text">Generating smart keywords...</p>
+      <p class="loading-sub" id="loading-sub">Analyzing your profile</p>
+      <div class="loading-steps">
+        <div class="step" id="step-1"><span class="step-dot active"></span> Analyzing your profile</div>
+        <div class="step" id="step-2"><span class="step-dot"></span> Generating search keywords</div>
+        <div class="step" id="step-3"><span class="step-dot"></span> Crawling for opportunities</div>
+        <div class="step" id="step-4"><span class="step-dot"></span> Classifying results</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- PAGE: RESULTS -->
+  <main id="page-results" class="page">
+    <div class="results-container">
+      <div class="results-header">
+        <div>
+          <p class="results-meta">Results for</p>
+          <h2 class="results-title" id="results-title">—</h2>
+        </div>
+        <button class="btn-outline" onclick="showPage('landing')">New Search</button>
+      </div>
+
+      <!-- Keywords panel -->
+      <div class="keywords-panel">
+        <div class="keywords-header">
+          <span class="keywords-label">AI-Generated Keywords</span>
+          <button class="btn-small" id="btn-edit-kw" onclick="toggleKeywordEdit()">Edit Keywords</button>
+        </div>
+        <div class="keywords-tags" id="keywords-tags"></div>
+        <div class="keywords-editor" id="keywords-editor" style="display:none;">
+          <div class="kw-add-row">
+            <input type="text" id="input-new-kw" placeholder="Add a keyword..."
+                   onkeydown="if(event.key==='Enter') addKeyword()" />
+            <button class="btn-small btn-accent" onclick="addKeyword()">Add</button>
+            <button class="btn-small btn-success" onclick="reSearch()">Re-Search</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <span class="results-count" id="results-count">0 opportunities</span>
+        <div class="filter-chips" id="filter-chips"></div>
+      </div>
+
+      <!-- Results -->
+      <div id="results-list"></div>
+
+      <div class="results-footer">
+        <p>Built for students, by students — Hackathon project</p>
+        <p>Always verify deadlines and eligibility on official websites.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- PAGE: BOOKMARKS -->
+  <main id="page-bookmarks" class="page">
+    <div class="results-container">
+      <div class="results-header">
+        <div>
+          <p class="results-meta">Your saved</p>
+          <h2 class="results-title">Bookmarked Opportunities</h2>
+        </div>
+      </div>
+      <div id="bookmarks-list">
+        <p class="empty-state">No bookmarks yet. Search and save the ones you like!</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- PAGE: HISTORY -->
+  <main id="page-history" class="page">
+    <div class="results-container">
+      <div class="results-header">
+        <div>
+          <p class="results-meta">Your recent</p>
+          <h2 class="results-title">Search History</h2>
+        </div>
+      </div>
+      <div id="history-list">
+        <p class="empty-state">No searches yet.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
