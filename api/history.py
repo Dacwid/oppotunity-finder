@@ -2,7 +2,7 @@
 
 import json
 from http.server import BaseHTTPRequestHandler
-from _utils import get_recent_searches
+from api._utils import get_recent_searches
 
 
 class handler(BaseHTTPRequestHandler):

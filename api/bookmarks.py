@@ -2,7 +2,7 @@
 
 import json
 from http.server import BaseHTTPRequestHandler
-from _utils import get_bookmarks, add_bookmark, remove_bookmark
+from api._utils import get_bookmarks, add_bookmark, remove_bookmark
 
 
 class handler(BaseHTTPRequestHandler):

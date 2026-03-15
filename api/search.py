@@ -2,7 +2,7 @@
 
 import json
 from http.server import BaseHTTPRequestHandler
-from _utils import (
+from api._utils import (
     generate_keywords, search_opportunities,
     save_search, save_results
 )
