@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.py",
+      "src": "api/*.py",
       "use": "@vercel/python"
     },
     {
@@ -11,7 +11,11 @@
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/api/search", "dest": "/api/search.py" },
+    { "src": "/api/refine", "dest": "/api/refine.py" },
+    { "src": "/api/bookmarks", "dest": "/api/bookmarks.py" },
+    { "src": "/api/history", "dest": "/api/history.py" },
+    { "src": "/", "dest": "/public/index.html" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }

@@ -2,7 +2,7 @@
 
 import json
 from http.server import BaseHTTPRequestHandler
-from api._utils import search_opportunities, save_search, save_results
+from _utils import search_opportunities, save_search, save_results
 
 
 class handler(BaseHTTPRequestHandler):
