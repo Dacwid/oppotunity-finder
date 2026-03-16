@@ -86,7 +86,7 @@ RULES:
 1. Each keyword should be a search-engine-ready query (3-8 words)
 2. Include "{country}" or "online" where relevant
 3. Mix opportunity types: certifications, competitions, workshops, etc.
-4. Include year "2025" or "2026" in some queries
+4. Include year "2026" in some queries
 5. Tailor to the student's level and budget
 6. If budget is "Free only", focus on free/sponsored opportunities
 
