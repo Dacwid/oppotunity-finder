@@ -74,11 +74,19 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="input-country">
+            <label>
               <span class="label-icon">🌍</span>
               Country
             </label>
-            <input type="text" id="input-country" placeholder="e.g. Malaysia, USA, India" />
+            <div class="country-dropdown" id="country-dropdown">
+              <input type="text" id="input-country-search" placeholder="Search country..."
+                     autocomplete="off"
+                     oninput="filterCountries(this.value)"
+                     onfocus="openCountryDropdown()"
+                     onblur="setTimeout(closeCountryDropdown, 150)" />
+              <input type="hidden" id="input-country" />
+              <div class="country-list" id="country-list"></div>
+            </div>
           </div>
         </div>
 
