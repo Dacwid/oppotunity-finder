@@ -1,18 +1,18 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/search.py", "use": "@vercel/python" },
-    { "src": "api/refine.py", "use": "@vercel/python" },
-    { "src": "api/bookmarks.py", "use": "@vercel/python" },
-    { "src": "api/history.py", "use": "@vercel/python" },
-    { "src": "public/**", "use": "@vercel/static" }
+    { "src": "src/api/search.py", "use": "@vercel/python" },
+    { "src": "src/api/refine.py", "use": "@vercel/python" },
+    { "src": "src/api/bookmarks.py", "use": "@vercel/python" },
+    { "src": "src/api/history.py", "use": "@vercel/python" },
+    { "src": "src/public/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/search", "dest": "/api/search.py" },
-    { "src": "/api/refine", "dest": "/api/refine.py" },
-    { "src": "/api/bookmarks", "dest": "/api/bookmarks.py" },
-    { "src": "/api/history", "dest": "/api/history.py" },
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+    { "src": "/api/search", "dest": "/src/api/search.py" },
+    { "src": "/api/refine", "dest": "/src/api/refine.py" },
+    { "src": "/api/bookmarks", "dest": "/src/api/bookmarks.py" },
+    { "src": "/api/history", "dest": "/src/api/history.py" },
+    { "src": "/", "dest": "/src/public/index.html" },
+    { "src": "/(.*)", "dest": "/src/public/$1" }
   ]
 }

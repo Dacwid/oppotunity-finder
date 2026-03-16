@@ -14,15 +14,12 @@ import uuid
 import requests
 from datetime import datetime
 
-# ═══════════════════════════════════════════
 #  CONFIG (set in Vercel Environment Variables)
-# ═══════════════════════════════════════════
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
-# /tmp is the only writable directory on Vercel serverless
 DB_DIR = "/tmp"
 
 SEARCHES_FILE = os.path.join(DB_DIR, "searches.csv")
@@ -42,10 +39,7 @@ BOOKMARKS_HEADERS = [
     "opportunity_type", "bookmarked_at"
 ]
 
-
-# ═══════════════════════════════════════════
 #  GROQ LLM (free — https://console.groq.com)
-# ═══════════════════════════════════════════
 
 def call_groq(prompt):
     """Call Groq free API. Returns text or None."""
@@ -116,9 +110,7 @@ Example: ["machine learning free certification 2025", "AI hackathon undergraduat
     return [f"{topic} {t} {free} {loc} {level}".strip() for t in types]
 
 
-# ═══════════════════════════════════════════
 #  SERPER WEB SEARCH (free — https://serper.dev)
-# ═══════════════════════════════════════════
 
 def search_serper(query, num_results=8):
     """Search Google via Serper.dev free tier."""
@@ -191,15 +183,12 @@ def search_opportunities(keywords):
     return all_results
 
 
-# ═══════════════════════════════════════════
 #  CSV DATABASE (/tmp on Vercel — ephemeral)
-#
+
 #  NOTE: Vercel serverless /tmp is per-invocation.
 #  Data will NOT persist between cold starts.
-#  This is fine for a hackathon demo.
-#  For persistence, swap with Vercel KV, Supabase,
-#  or any free Postgres (Neon, Railway).
-# ═══════════════════════════════════════════
+
+#  For persistence, swap with any free cloud database (e.g. Firebase, Supabase) and update the functions below.
 
 def _ensure_csv(filepath, headers):
     if not os.path.exists(filepath):
