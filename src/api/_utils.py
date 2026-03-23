@@ -7,37 +7,48 @@ api/_utils.py — Shared helpers for all serverless functions.
 """
 
 import os
-import csv
 import json
 import re
-import uuid
 import requests
-from datetime import datetime
+import base64
+
 
 #  CONFIG (set in Vercel Environment Variables)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
+SUPABASE_URL      = os.getenv("SUPABASE_URL", "")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
 
-DB_DIR = "/tmp"
 
-SEARCHES_FILE = os.path.join(DB_DIR, "searches.csv")
-RESULTS_FILE = os.path.join(DB_DIR, "results.csv")
-BOOKMARKS_FILE = os.path.join(DB_DIR, "bookmarks.csv")
+#  SUPABASE CLIENT (free tier — https://supabase.com)
 
-SEARCHES_HEADERS = [
-    "search_id", "timestamp", "topic", "level", "country",
-    "budget", "goals", "keywords_json"
-]
-RESULTS_HEADERS = [
-    "result_id", "search_id", "title", "url", "snippet",
-    "opportunity_type", "source_domain", "found_at"
-]
-BOOKMARKS_HEADERS = [
-    "bookmark_id", "result_id", "title", "url", "snippet",
-    "opportunity_type", "bookmarked_at"
-]
+def get_user_id_from_token(token: str) -> str:
+    try:
+        payload = token.split('.')[1]
+        payload += '=' * (4 - len(payload) % 4)
+        data = json.loads(base64.b64decode(payload))
+        return data.get('sub', '')
+    except Exception:
+        return ''
+
+
+def _supabase(method: str, table: str, token: str, data=None, params=None):
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        raise RuntimeError("SUPABASE_URL and SUPABASE_ANON_KEY must be set.")
+    headers = {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+    }
+    url = f"{SUPABASE_URL}/rest/v1/{table}"
+    resp = requests.request(method, url, headers=headers, json=data, params=params, timeout=10)
+    resp.raise_for_status()
+    return resp.json() if resp.text.strip() else []
+
+
 
 #  GROQ LLM (free — https://console.groq.com)
 
@@ -183,81 +194,51 @@ def search_opportunities(keywords):
     return all_results
 
 
-#  CSV DATABASE (/tmp on Vercel — ephemeral)
+# ─── SUPABASE DATABASE ────────────────────────────────────────────────────────
 
-#  NOTE: Vercel serverless /tmp is per-invocation.
-#  Data will NOT persist between cold starts.
-
-#  For persistence, swap with any free cloud database (e.g. Firebase, Supabase) and update the functions below.
-
-def _ensure_csv(filepath, headers):
-    if not os.path.exists(filepath):
-        with open(filepath, "w", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow(headers)
-
-
-def _read_csv(filepath, headers):
-    _ensure_csv(filepath, headers)
-    with open(filepath, "r", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def _append_csv(filepath, headers, row):
-    _ensure_csv(filepath, headers)
-    with open(filepath, "a", newline="", encoding="utf-8") as f:
-        csv.DictWriter(f, fieldnames=headers).writerow(row)
-
-
-def save_search(topic, level, country, budget, goals, keywords_json):
-    sid = str(uuid.uuid4())[:8]
-    _append_csv(SEARCHES_FILE, SEARCHES_HEADERS, {
-        "search_id": sid,
-        "timestamp": datetime.now().isoformat(),
-        "topic": topic, "level": level, "country": country,
-        "budget": budget, "goals": goals,
-        "keywords_json": keywords_json,
+def save_search(token, user_id, topic, level, country, budget, goals, keywords):
+    kw_list = keywords if isinstance(keywords, list) else json.loads(keywords)
+    result = _supabase('POST', 'searches', token, {
+        'user_id': user_id, 'topic': topic, 'level': level,
+        'country': country, 'budget': budget, 'goals': goals,
+        'keywords': kw_list,
     })
-    return sid
+    return result[0]['id'] if result else None
 
 
-def save_results(search_id, results_list):
+def save_results(token, user_id, search_id, results_list):
     for r in results_list:
-        _append_csv(RESULTS_FILE, RESULTS_HEADERS, {
-            "result_id": str(uuid.uuid4())[:8],
-            "search_id": search_id,
-            "title": r.get("title", ""),
-            "url": r.get("url", ""),
-            "snippet": r.get("snippet", ""),
-            "opportunity_type": r.get("type", "opportunity"),
-            "source_domain": r.get("domain", ""),
-            "found_at": datetime.now().isoformat(),
+        _supabase('POST', 'results', token, {
+            'user_id': user_id, 'search_id': search_id,
+            'title': r.get('title', ''), 'url': r.get('url', ''),
+            'snippet': r.get('snippet', ''),
+            'opportunity_type': r.get('type', 'opportunity'),
+            'source_domain': r.get('domain', ''),
         })
 
 
-def get_recent_searches(limit=20):
-    rows = _read_csv(SEARCHES_FILE, SEARCHES_HEADERS)
-    return rows[-limit:][::-1]
-
-
-def add_bookmark(result_id, title, url, snippet, opp_type):
-    bid = str(uuid.uuid4())[:8]
-    _append_csv(BOOKMARKS_FILE, BOOKMARKS_HEADERS, {
-        "bookmark_id": bid, "result_id": result_id,
-        "title": title, "url": url, "snippet": snippet,
-        "opportunity_type": opp_type,
-        "bookmarked_at": datetime.now().isoformat(),
+def get_recent_searches(token, limit=20):
+    return _supabase('GET', 'searches', token, params={
+        'order': 'created_at.desc', 'limit': str(limit),
+        'select': 'id,topic,level,country,budget,goals,keywords,created_at',
     })
-    return bid
 
 
-def get_bookmarks():
-    return _read_csv(BOOKMARKS_FILE, BOOKMARKS_HEADERS)
+def add_bookmark(token, user_id, result_id, title, url, snippet, opp_type):
+    result = _supabase('POST', 'bookmarks', token, {
+        'user_id': user_id, 'result_id': result_id or None,
+        'title': title, 'url': url, 'snippet': snippet,
+        'opportunity_type': opp_type,
+    })
+    return result[0]['id'] if result else None
 
 
-def remove_bookmark(bid):
-    rows = _read_csv(BOOKMARKS_FILE, BOOKMARKS_HEADERS)
-    rows = [r for r in rows if r["bookmark_id"] != bid]
-    with open(BOOKMARKS_FILE, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=BOOKMARKS_HEADERS)
-        w.writeheader()
-        w.writerows(rows)
+def get_bookmarks(token):
+    return _supabase('GET', 'bookmarks', token, params={
+        'order': 'created_at.desc',
+        'select': 'id,title,url,snippet,opportunity_type,created_at',
+    })
+
+
+def remove_bookmark(token, bid):
+    _supabase('DELETE', 'bookmarks', token, params={'id': f'eq.{bid}'})

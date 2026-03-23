@@ -15,6 +15,12 @@ let currentSearchId = "";
 let currentFilter = "all";
 let editingKeywords = false;
 
+// Auth state
+let supabaseClient = null;
+let currentUser    = null;
+let currentToken   = null;
+let authMode       = "login";
+
 // ═══════════════════════════════════════════
 //  PAGE ROUTER
 // ═══════════════════════════════════════════
@@ -105,7 +111,7 @@ async function handleSearch() {
 
     const resp = await fetch("/api/search", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ topic, level, country, budget, goals }),
     });
 
@@ -159,7 +165,7 @@ async function reSearch() {
   try {
     const resp = await fetch("/api/refine", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ keywords: currentKeywords, search_id: currentSearchId }),
     });
 
@@ -291,6 +297,12 @@ function addKeyword() {
 // ═══════════════════════════════════════════
 
 async function bookmarkResult(index) {
+  // Prompt login if not authenticated
+  if (!currentUser) {
+    showAuthModal();
+    return;
+  }
+
   const filtered =
     currentFilter === "all"
       ? currentResults
@@ -301,7 +313,7 @@ async function bookmarkResult(index) {
   try {
     await fetch("/api/bookmarks", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         result_id: r.result_id || "",
         title: r.title,
@@ -326,8 +338,14 @@ async function bookmarkResult(index) {
 
 async function loadBookmarks() {
   const container = document.getElementById("bookmarks-list");
+
+  if (!currentUser) {
+    container.innerHTML = '<p class="empty-state">Please <a href="#" onclick="showAuthModal()">login</a> to view your saved opportunities.</p>';
+    return;
+  }
+
   try {
-    const resp = await fetch("/api/bookmarks");
+    const resp = await fetch("/api/bookmarks", { headers: authHeaders() });
     const data = await resp.json();
     if (!data.length) {
       container.innerHTML = '<p class="empty-state">No bookmarks yet. Search and save the ones you like!</p>';
@@ -340,7 +358,7 @@ async function loadBookmarks() {
            onclick="window.open('${escAttr(b.url)}','_blank','noopener')">
         <div class="result-card-top">
           <span class="result-type-badge badge-${b.opportunity_type || "opportunity"}">${b.opportunity_type || "opportunity"}</span>
-          <button class="result-bookmark-btn bookmarked" onclick="event.stopPropagation();removeBookmarkUI('${b.bookmark_id}')" title="Remove">★</button>
+          <button class="result-bookmark-btn bookmarked" onclick="event.stopPropagation();removeBookmarkUI('${b.id}')" title="Remove">★</button>
         </div>
         <h3>${esc(b.title)}</h3>
         <p>${esc(b.snippet)}</p>
@@ -355,7 +373,7 @@ async function loadBookmarks() {
 
 async function removeBookmarkUI(id) {
   try {
-    await fetch(`/api/bookmarks?id=${id}`, { method: "DELETE" });
+    await fetch(`/api/bookmarks?id=${id}`, { method: "DELETE", headers: authHeaders() });
     loadBookmarks();
   } catch (err) {
     console.error(err);
@@ -368,8 +386,14 @@ async function removeBookmarkUI(id) {
 
 async function loadHistory() {
   const container = document.getElementById("history-list");
+
+  if (!currentUser) {
+    container.innerHTML = '<p class="empty-state">Please <a href="#" onclick="showAuthModal()">login</a> to view your search history.</p>';
+    return;
+  }
+
   try {
-    const resp = await fetch("/api/history");
+    const resp = await fetch("/api/history", { headers: authHeaders() });
     const data = await resp.json();
     if (!data.length) {
       container.innerHTML = '<p class="empty-state">No searches yet.</p>';
@@ -382,7 +406,7 @@ async function loadHistory() {
         <div class="hist-topic">${esc(s.topic)}</div>
         <div class="hist-meta">
           ${s.level ? s.level + " · " : ""}${s.country ? s.country + " · " : ""}${s.budget || ""}
-          ${s.timestamp ? " · " + new Date(s.timestamp).toLocaleDateString() : ""}
+          ${s.created_at ? " · " + new Date(s.created_at).toLocaleDateString() : ""}
         </div>
       </div>`
       )
@@ -400,8 +424,81 @@ function quickRerun(topic) {
 }
 
 // ═══════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════
+
+function showAuthModal() {
+  document.getElementById("auth-overlay").style.display = "flex";
+  setTimeout(() => document.getElementById("auth-email").focus(), 50);
+}
+
+function closeAuthModal() {
+  document.getElementById("auth-overlay").style.display = "none";
+  document.getElementById("auth-message").style.display = "none";
+  document.getElementById("auth-email").value = "";
+  document.getElementById("auth-password").value = "";
+}
+
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById("auth-submit").textContent = mode === "login" ? "Login" : "Sign Up";
+  document.getElementById("tab-login").style.borderBottomColor  = mode === "login"  ? "#2563eb" : "transparent";
+  document.getElementById("tab-signup").style.borderBottomColor = mode === "signup" ? "#2563eb" : "transparent";
+}
+
+async function handleAuthSubmit() {
+  const email    = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const msgEl    = document.getElementById("auth-message");
+
+  if (!email || !password) {
+    msgEl.textContent = "Please enter your email and password.";
+    msgEl.style.display = "block";
+    return;
+  }
+
+  const btn = document.getElementById("auth-submit");
+  btn.textContent = "Please wait...";
+  btn.disabled = true;
+
+  try {
+    const { error } = authMode === "login"
+      ? await supabaseClient.auth.signInWithPassword({ email, password })
+      : await supabaseClient.auth.signUp({ email, password });
+
+    if (error) {
+      msgEl.textContent = error.message;
+      msgEl.style.display = "block";
+    } else {
+      closeAuthModal();
+    }
+  } catch (err) {
+    msgEl.textContent = "Something went wrong. Try again.";
+    msgEl.style.display = "block";
+  } finally {
+    btn.textContent = authMode === "login" ? "Login" : "Sign Up";
+    btn.disabled = false;
+  }
+}
+
+async function handleLogout() {
+  await supabaseClient.auth.signOut();
+}
+
+function updateAuthUI(loggedIn) {
+  document.getElementById("btn-login").style.display  = loggedIn ? "none" : "";
+  document.getElementById("btn-logout").style.display = loggedIn ? "" : "none";
+}
+
+// ═══════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════
+
+function authHeaders() {
+  const h = { "Content-Type": "application/json" };
+  if (currentToken) h["Authorization"] = `Bearer ${currentToken}`;
+  return h;
+}
 
 function showError(msg) {
   const active = document.querySelector(".page.active");
@@ -429,10 +526,6 @@ function escAttr(s) {
   if (!s) return "";
   return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
-
-// ═══════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════
 
 // ═══════════════════════════════════════════
 //  COUNTRY DROPDOWN
@@ -496,7 +589,34 @@ function selectCountry(country) {
   closeCountryDropdown();
 }
 
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Replace these with your actual values from Supabase → Project Settings → API
+  const SUPABASE_URL      = "YOUR_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Restore session if the user was already logged in
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      currentUser  = session.user;
+      currentToken = session.access_token;
+      updateAuthUI(true);
+    }
+  });
+
+  // Keep token fresh — Supabase silently refreshes JWTs before they expire,
+  // this listener catches that and updates currentToken automatically
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    currentUser  = session?.user  ?? null;
+    currentToken = session?.access_token ?? null;
+    updateAuthUI(!!session);
+  });
+
   showPage("landing");
   document.getElementById("input-topic")?.focus();
   initCountryDropdown();

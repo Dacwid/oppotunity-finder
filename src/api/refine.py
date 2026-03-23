@@ -2,8 +2,11 @@
 
 import json
 from http.server import BaseHTTPRequestHandler
-from src.api._utils import search_opportunities, save_search, save_results
+from src.api._utils import search_opportunities, save_search, save_results, get_user_id_from_token
 
+def _extract_token(headers):
+    auth = headers.get("Authorization", "")
+    return auth[7:] if auth.startswith("Bearer ") else None
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -18,11 +21,14 @@ class handler(BaseHTTPRequestHandler):
 
             results = search_opportunities(keywords)
 
-            search_id = save_search(
-                "(refined search)", "", "", "", "",
-                json.dumps(keywords)
-            )
-            save_results(search_id, results)
+            search_id = None
+            token = _extract_token(self.headers)
+            if token:
+                user_id = get_user_id_from_token(token)
+                if user_id:
+                    search_id = save_search(token, user_id, "(refined search)", "", "", "", "", keywords)
+                    if search_id:
+                        save_results(token, user_id, search_id, results)
 
             self._respond(200, {
                 "search_id": search_id,
@@ -42,7 +48,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode())
 
@@ -50,5 +56,5 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
         self.end_headers()
