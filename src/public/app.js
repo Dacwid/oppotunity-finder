@@ -438,9 +438,10 @@ function closeAuthModal() {
   document.getElementById("auth-email").value = "";
   document.getElementById("auth-password").value = "";
   document.getElementById("auth-password-confirm").value = "";
-  // Reset password field to hidden
+  // Reset password field to hidden and message color to red
   document.getElementById("auth-password").type = "password";
   document.getElementById("btn-toggle-pw").textContent = "Show";
+  document.getElementById("auth-message").style.color = "red";
 }
 
 function switchAuthTab(mode) {
@@ -492,6 +493,32 @@ async function handleAuthSubmit() {
   } finally {
     btn.textContent = authMode === "login" ? "Login" : "Sign Up";
     btn.disabled = false;
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById("auth-email").value.trim();
+  const msgEl = document.getElementById("auth-message");
+
+  if (!email) {
+    msgEl.style.color = "red";
+    msgEl.textContent = "Enter your email above first, then click Forgot password.";
+    msgEl.style.display = "block";
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/reset-password",
+  });
+
+  if (error) {
+    msgEl.style.color = "red";
+    msgEl.textContent = error.message;
+    msgEl.style.display = "block";
+  } else {
+    msgEl.style.color = "green";
+    msgEl.textContent = "Password reset email sent. Check your inbox.";
+    msgEl.style.display = "block";
   }
 }
 
