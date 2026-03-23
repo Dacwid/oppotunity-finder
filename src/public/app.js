@@ -437,6 +437,10 @@ function closeAuthModal() {
   document.getElementById("auth-message").style.display = "none";
   document.getElementById("auth-email").value = "";
   document.getElementById("auth-password").value = "";
+  document.getElementById("auth-password-confirm").value = "";
+  // Reset password field to hidden
+  document.getElementById("auth-password").type = "password";
+  document.getElementById("btn-toggle-pw").textContent = "Show";
 }
 
 function switchAuthTab(mode) {
@@ -444,6 +448,7 @@ function switchAuthTab(mode) {
   document.getElementById("auth-submit").textContent = mode === "login" ? "Login" : "Sign Up";
   document.getElementById("tab-login").style.borderBottomColor  = mode === "login"  ? "#2563eb" : "transparent";
   document.getElementById("tab-signup").style.borderBottomColor = mode === "signup" ? "#2563eb" : "transparent";
+  document.getElementById("auth-password-confirm").style.display = mode === "signup" ? "block" : "none";
 }
 
 async function handleAuthSubmit() {
@@ -455,6 +460,15 @@ async function handleAuthSubmit() {
     msgEl.textContent = "Please enter your email and password.";
     msgEl.style.display = "block";
     return;
+  }
+
+  if (authMode === "signup") {
+    const confirm = document.getElementById("auth-password-confirm").value;
+    if (password !== confirm) {
+      msgEl.textContent = "Passwords do not match.";
+      msgEl.style.display = "block";
+      return;
+    }
   }
 
   const btn = document.getElementById("auth-submit");
@@ -478,6 +492,18 @@ async function handleAuthSubmit() {
   } finally {
     btn.textContent = authMode === "login" ? "Login" : "Sign Up";
     btn.disabled = false;
+  }
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById("auth-password");
+  const btn   = document.getElementById("btn-toggle-pw");
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "Hide";
+  } else {
+    input.type = "password";
+    btn.textContent = "Show";
   }
 }
 
