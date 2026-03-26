@@ -80,6 +80,7 @@ def call_groq(prompt):
 
 def generate_keywords(topic, level, country, budget, goals):
     """Use Groq to turn student profile into search keywords."""
+    location = "online" if not country or country.lower() == "worldwide" else country
     prompt = f"""You are a keyword generator for a student opportunity search engine.
 
 Given this student profile, generate 8-12 specific search queries to find
@@ -89,13 +90,13 @@ bootcamps, scholarships, fellowships, internships, conferences).
 STUDENT PROFILE:
 - Field/Interest: {topic}
 - Academic Level: {level}
-- Country: {country}
+- Country: {location}
 - Budget: {budget}
 - Goals: {goals}
 
 RULES:
 1. Each keyword should be a search-engine-ready query (3-8 words)
-2. Include "{country}" or "online" where relevant
+2. Include "{location}" or "online" where relevant
 3. Mix opportunity types: certifications, competitions, workshops, etc.
 4. Include year "2026" in some queries
 5. Tailor to the student's level and budget
@@ -118,7 +119,7 @@ Example: ["Google cloud certification free 2026", "AI hackathon undergraduate on
     # Fallback: generate keywords locally if LLM fails
     types = ["workshop", "free certification", "competition", "hackathon",
              "bootcamp", "scholarship", "fellowship", "internship"]
-    loc = country if country else "online"
+    loc = location
     free = "free" if "free" in (budget or "").lower() else ""
     return [f"{topic} {t} {free} {loc} {level}".strip() for t in types]
 
@@ -136,7 +137,7 @@ def search_serper(query, num_results=8):
                 "X-API-KEY": SERPER_API_KEY,
                 "Content-Type": "application/json",
             },
-            json={"q": query, "num": num_results},
+            json={"q": query, "num": num_results, "gl": "us", "hl": "en"},
             timeout=12,
         )
         resp.raise_for_status()

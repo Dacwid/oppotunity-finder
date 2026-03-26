@@ -621,6 +621,7 @@ function escAttr(s) {
 // ═══════════════════════════════════════════
 
 const COUNTRIES = [
+  "Worldwide",
   "Afghanistan","Albania","Algeria","Argentina","Armenia","Australia","Austria",
   "Azerbaijan","Bangladesh","Belarus","Belgium","Bolivia","Bosnia and Herzegovina",
   "Brazil","Bulgaria","Cambodia","Cameroon","Canada","Chile","China","Colombia",
