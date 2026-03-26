@@ -1,4 +1,4 @@
-# OpportunityFinder 🎯
+# OpportunityFinder 
 
 A lot of university students have the drive to build their CV but don't know where to start looking. Opportunities like hackathons, free certifications, workshops, and scholarships exist everywhere — but they're scattered and hard to find. OpportunityFinder solves that by letting students describe their interests and goals, then using AI to search the web and surface relevant opportunities tailored to them.
 
