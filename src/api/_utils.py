@@ -100,9 +100,11 @@ RULES:
 4. Include year "2026" in some queries
 5. Tailor to the student's level and budget
 6. If budget is "Free only", focus on free/sponsored opportunities
+7. Focus on official program pages and application portals — avoid queries that would return blog posts, listicles, or "top 10" articles
+8. Use specific program names or platform names (e.g. "Coursera", "Google", "AWS") when possible to target direct opportunity pages rather than blog roundups
 
 Respond with ONLY a JSON array of strings. No explanation, no markdown.
-Example: ["machine learning free certification 2025", "AI hackathon undergraduate online"]"""
+Example: ["Google cloud certification free 2026", "AI hackathon undergraduate online"]"""
 
     response = call_groq(prompt)
     if response:
@@ -155,6 +157,7 @@ def classify_opportunity(title, snippet):
     """Tag an opportunity by type based on keywords."""
     text = (title + " " + snippet).lower()
     types = {
+        "blog": ["blog", "top 10", "top 5", "best ", "listicle", "roundup", "review"],
         "certification": ["certification", "certificate", "certified", "credential"],
         "hackathon": ["hackathon", "hack"],
         "competition": ["competition", "contest", "challenge"],

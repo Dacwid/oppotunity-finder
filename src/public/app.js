@@ -93,7 +93,7 @@ async function handleSearch() {
   // Disable button
   const btn = document.getElementById("btn-search");
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Searching...';
+  btn.innerHTML = 'Searching...';
 
   // Show loading with steps
   showPage("loading");
@@ -134,6 +134,16 @@ async function handleSearch() {
     currentFilter = "all";
     editingKeywords = false;
 
+    // Filter out already-bookmarked URLs
+    if (currentUser) {
+      try {
+        const bResp = await fetch("/api/bookmarks", { headers: authHeaders() });
+        const bookmarks = await bResp.json();
+        const savedUrls = new Set(bookmarks.map((b) => b.url));
+        currentResults = currentResults.filter((r) => !savedUrls.has(r.url));
+      } catch (_) { /* proceed unfiltered if bookmarks fail */ }
+    }
+
     renderResults(topic);
     showPage("results");
   } catch (err) {
@@ -146,7 +156,7 @@ async function handleSearch() {
     );
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">⟐</span> Find Opportunities';
+    btn.innerHTML = 'Find Opportunities';
   }
 }
 
@@ -180,6 +190,16 @@ async function reSearch() {
     currentResults = data.results || [];
     currentFilter = "all";
     editingKeywords = false;
+
+    // Filter out already-bookmarked URLs
+    if (currentUser) {
+      try {
+        const bResp = await fetch("/api/bookmarks", { headers: authHeaders() });
+        const bookmarks = await bResp.json();
+        const savedUrls = new Set(bookmarks.map((b) => b.url));
+        currentResults = currentResults.filter((r) => !savedUrls.has(r.url));
+      } catch (_) { /* proceed unfiltered if bookmarks fail */ }
+    }
 
     renderResults("Refined Search");
     showPage("results");
@@ -484,6 +504,10 @@ async function handleAuthSubmit() {
     if (error) {
       msgEl.textContent = error.message;
       msgEl.style.display = "block";
+    } else if (authMode === "signup") {
+      msgEl.style.color = "green";
+      msgEl.textContent = "Verification email has been sent. Please check your email to confirm your account.";
+      msgEl.style.display = "block";
     } else {
       closeAuthModal();
     }
@@ -563,6 +587,18 @@ function showError(msg) {
   toast.textContent = msg;
   (active.querySelector("div") || active).prepend(toast);
   setTimeout(() => toast.remove(), 10000);
+}
+
+function showSuccess(msg) {
+  const active = document.querySelector(".page.active");
+  if (!active) return;
+  const existing = active.querySelector(".success-toast");
+  if (existing) existing.remove();
+  const toast = document.createElement("div");
+  toast.className = "success-toast";
+  toast.textContent = msg;
+  (active.querySelector("div") || active).prepend(toast);
+  setTimeout(() => toast.remove(), 6000);
 }
 
 function getDomain(url) {
@@ -651,7 +687,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const SUPABASE_URL      = "https://gymzfpzinruiupirnmiy.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5bXpmcHppbnJ1aXVwaXJubWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNDYzMTcsImV4cCI6MjA4OTgyMjMxN30.Ol2nad3ZaW_RtOXs9RJTf9ameltMTKh93u4zp2MJXR8";
 
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, storage: window.sessionStorage }
+  });
 
   // Restore session if the user was already logged in
   supabaseClient.auth.getSession().then(({ data: { session } }) => {
@@ -664,10 +702,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Keep token fresh — Supabase silently refreshes JWTs before they expire,
   // this listener catches that and updates currentToken automatically
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     currentUser  = session?.user  ?? null;
     currentToken = session?.access_token ?? null;
     updateAuthUI(!!session);
+    if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
+      closeAuthModal();
+      showSuccess("Email confirmed! You're now logged in.");
+    }
   });
 
   showPage("landing");
