@@ -29,13 +29,13 @@
   <!-- PAGE: LANDING / INTAKE FORM -->
   <main id="page-landing" class="page active">
     <div class="landing-container">
-      <div class="landing-badge">For Undergraduate Students</div>
+      <p class="landing-badge">Student opportunity finder</p>
       <h1 class="landing-title">
-        Discover opportunities to<br/><em>build your CV</em>
+        Find opportunities<br/>that <em>build your CV</em>
       </h1>
       <p class="landing-sub">
         Tell us about yourself and what you're looking for.
-        Our AI will find workshops, certifications, competitions &amp; more — tailored to you.
+        We'll surface workshops, certifications, competitions and more — tailored to you.
       </p>
 
       <div class="intake-form">
@@ -238,31 +238,30 @@
     </div>
   </main>
 
-  <div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:2rem; border-radius:12px; width:100%; max-width:400px; margin:1rem;">
-
-      <div style="display:flex; gap:1rem; margin-bottom:1.5rem;">
-        <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1; padding:0.5rem; font-weight:600; border:none; border-bottom:2px solid #2563eb; cursor:pointer;">Login</button>
-        <button id="tab-signup" onclick="switchAuthTab('signup')" style="flex:1; padding:0.5rem; font-weight:600; border:none; border-bottom:2px solid transparent; cursor:pointer;">Sign Up</button>
+  <div id="auth-overlay" style="display:none;">
+    <div class="auth-modal">
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+        <button id="tab-signup" class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
       </div>
 
-      <input id="auth-email" type="email" placeholder="Email" style="width:100%; padding:0.75rem; margin-bottom:0.75rem; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" />
+      <input id="auth-email" class="auth-input" type="email" placeholder="Email" />
 
-      <div style="position:relative; margin-bottom:0.75rem;">
-        <input id="auth-password" type="password" placeholder="Password (min 6 characters)" style="width:100%; padding:0.75rem; padding-right:3.5rem; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" />
-        <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#666; font-size:13px; font-weight:600;">Show</button>
+      <div class="auth-pw-wrap">
+        <input id="auth-password" class="auth-input" type="password" placeholder="Password (min 6 characters)" />
+        <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" class="auth-toggle-pw">Show</button>
       </div>
 
-      <p id="forgot-pw-link" style="text-align:right; margin:0 0 0.75rem; font-size:13px;">
-        <a href="#" onclick="handleForgotPassword()" style="color:#2563eb; text-decoration:none;">Forgot password?</a>
+      <p id="forgot-pw-link" class="auth-forgot">
+        <a href="#" onclick="handleForgotPassword()">Forgot password?</a>
       </p>
 
-      <input id="auth-password-confirm" type="password" placeholder="Confirm password" style="width:100%; padding:0.75rem; margin-bottom:1rem; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; display:none;" />
+      <input id="auth-password-confirm" class="auth-input" type="password" placeholder="Confirm password" style="display:none;" />
 
-      <p id="auth-message" style="color:red; font-size:0.85rem; margin-bottom:0.75rem; display:none;"></p>
+      <p id="auth-message" class="auth-message" style="color:red; display:none;"></p>
 
-      <button id="auth-submit" onclick="handleAuthSubmit()" style="width:100%; padding:0.75rem; background:#2563eb; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Login</button>
-      <button onclick="closeAuthModal()" style="width:100%; padding:0.5rem; margin-top:0.5rem; background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
+      <button id="auth-submit" class="auth-submit" onclick="handleAuthSubmit()">Login</button>
+      <button class="auth-cancel" onclick="closeAuthModal()">Cancel</button>
     </div>
   </div>
 

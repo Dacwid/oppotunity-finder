@@ -2,3 +2,7 @@
 __pycache__/
 *.csv
 CLAUDE.md
+.agents/
+.claude/
+.kiro/
+skills-lock.json

@@ -467,8 +467,8 @@ function closeAuthModal() {
 function switchAuthTab(mode) {
   authMode = mode;
   document.getElementById("auth-submit").textContent = mode === "login" ? "Login" : "Sign Up";
-  document.getElementById("tab-login").style.borderBottomColor  = mode === "login"  ? "#2563eb" : "transparent";
-  document.getElementById("tab-signup").style.borderBottomColor = mode === "signup" ? "#2563eb" : "transparent";
+  document.getElementById("tab-login").classList.toggle("active", mode === "login");
+  document.getElementById("tab-signup").classList.toggle("active", mode === "signup");
   document.getElementById("auth-password-confirm").style.display = mode === "signup" ? "block" : "none";
 }
 
