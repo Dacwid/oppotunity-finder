@@ -20,6 +20,7 @@
   --shadow-hover: 0 4px 20px rgba(0,0,0,0.1);
   --radius: 12px;
   --radius-sm: 8px;
+  --font-heading: 'Josefin Sans', system-ui, sans-serif;
   --font-display: 'Source Serif 4', Georgia, serif;
   --font-body: 'Outfit', system-ui, sans-serif;
   --font-mono: 'DM Mono', monospace;
@@ -29,10 +30,17 @@
 
 body {
   font-family: var(--font-body);
-  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #fdf6e3 0%, #d9f0ec 50%, #dde3f8 100%);
+  z-index: -1;
 }
 
 /* paper texture overlay */
@@ -79,8 +87,8 @@ body::before {
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 .logo-text {
-  font-family: var(--font-display); font-size: 18px;
-  font-weight: 700; color: var(--dark); letter-spacing: -0.3px;
+  font-family: var(--font-heading); font-size: 18px;
+  font-weight: 700; color: var(--dark); letter-spacing: 0.5px;
 }
 .header-nav { display: flex; gap: 2px; }
 .nav-btn {
@@ -109,10 +117,10 @@ body::before {
   background: var(--muted); flex-shrink: 0;
 }
 .landing-title {
-  font-family: var(--font-display);
-  font-size: clamp(36px, 5.5vw, 52px); font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: clamp(36px, 5.5vw, 54px); font-weight: 700;
   color: var(--dark); line-height: 1.1;
-  margin-bottom: 18px; letter-spacing: -2px;
+  margin-bottom: 18px; letter-spacing: 1px; text-transform: uppercase;
 }
 .landing-title em { color: var(--accent); font-style: italic; }
 .landing-sub {
@@ -251,8 +259,8 @@ body::before {
 }
 .results-meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 1px; }
 .results-title {
-  font-family: var(--font-display); font-size: 28px;
-  font-weight: 700; color: var(--dark); letter-spacing: -0.5px;
+  font-family: var(--font-heading); font-size: 26px;
+  font-weight: 700; color: var(--dark); letter-spacing: 0.5px; text-transform: uppercase;
 }
 .btn-outline {
   padding: 9px 18px; border-radius: var(--radius-sm);
